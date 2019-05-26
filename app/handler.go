@@ -1,10 +1,11 @@
 package app
 
 import (
-	"strconv"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 // EventModel represents event JSON
@@ -20,30 +21,14 @@ func Health(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 
 	err := dbClient.Ping()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		log.Println("Error while pinging DB", err.Error())
+		errorMessage := fmt.Sprintf("Error while pinging DB: '%s'", err)
+		returnError(w, http.StatusInternalServerError, errorMessage)
 		return
 	}
 
-	healthStruct := struct {
-		AppStatus string `json:"app_status"`
-		DBStatus  string `json:"db_status"`
-	}{
-		"ok", "ok",
-	}
+	healthResponse := map[string]string{"app_status": "ok", "db_status": "ok"}
 
-	response, err := json.Marshal(healthStruct)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		log.Println("Error while marshaling health struct", err.Error())
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(response))
+	returnJSON(w, http.StatusOK, healthResponse)
 }
 
 // SaveEvent handles save event request
@@ -53,17 +38,20 @@ func SaveEvent(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	event := EventModel{}
 
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&event); err != nil {
-		log.Println("Error while marshaling event struct", err.Error())
+	err := decoder.Decode(&event)
+	if err != nil {
+		log.Println("Error while demarshalling body", err.Error())
 		return
 	}
 	defer r.Body.Close()
 
-	err := dbClient.Save(event)
+	err = dbClient.Save(event)
 	if err != nil {
-		log.Println("Error while saving event into DB", err)
-		//return error json
+		errorMessage := fmt.Sprintf("Error while saving event to DB: '%s'", err)
+		returnError(w, http.StatusInternalServerError, errorMessage)
 	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 // GetEvents handles get events request
@@ -75,19 +63,27 @@ func GetEvents(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 
 	events, err := dbClient.FetchAll(start, end)
 	if err != nil {
-		log.Println("Error while saving event into DB", err)
-		//return error json
+		errorMessage := fmt.Sprintf("Error while fetching events from DB: '%s'", err)
+		returnError(w, http.StatusInternalServerError, errorMessage)
 	}
 
-	response, err := json.Marshal(events)
+	returnJSON(w, http.StatusOK, events)
+}
+
+func returnJSON(w http.ResponseWriter, status int, payload interface{}) {
+	response, err := json.Marshal(payload)
 	if err != nil {
+		log.Println("Error while marshalling payload", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
-		log.Println("Error while marshaling array of events", err.Error())
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	w.Write([]byte(response))
+}
+
+func returnError(w http.ResponseWriter, status int, message string) {
+	log.Printf("Returning error '%s' with status code %d", message, status)
+	returnJSON(w, status, map[string]string{"error": message})
 }
