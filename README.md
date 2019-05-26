@@ -81,6 +81,10 @@ I'm a person from the Java world which is notorious by overengineering and abusi
 
 I advocate for BDD testing because tests that follow BDD principles are more expressive and readable.
 
+### Docs
+
+Maybe there are not so much `godoc` as you would like to see. But I believe that the most of code is pretty much self-documented and straightforward.
+
 # Improvments
 
 - [ ] swagger
