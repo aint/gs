@@ -5,7 +5,7 @@ test:
 	go test -v ./...
 
 run:
-	docker-compose up gs-app
+	docker-compose up --build gs-app
 
 down:
 	docker-compose down -v
