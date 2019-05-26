@@ -4,10 +4,10 @@ Basically this app is just an abstraction on top of InfluxDB. IMO the best solut
 
 # Quick Start
 
-Just run the followng command
+To start the app just run the the following command
 
 ```
-$ docker-compose up gs-app
+$ make run
 ```
 
 The app should now be running at http://localhost:8080
