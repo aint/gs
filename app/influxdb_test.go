@@ -64,9 +64,7 @@ func TestSave(t *testing.T) {
 
 		Convey("Happy case", func() {
 			// given
-			bps, _ := influx.NewBatchPoints(influx.BatchPointsConfig{Database: "mydb"})
-			point, _ := constructPoint(event)
-			bps.AddPoint(point)
+			bps, _ := constructBatchPoints(event)
 
 			influxClient := new(MockedInfluxClient)
 			influxClient.On("Write", bps).Return(nil)
@@ -100,19 +98,6 @@ func TestSave(t *testing.T) {
 			influxClient.AssertExpectations(t)
 		})
 	})
-}
-
-func constructPoint(event EventModel) (*influx.Point, error) {
-	tags := map[string]string{"event_type": event.EventType}
-
-	fields := make(map[string]interface{})
-	for k, v := range event.Params {
-		fields[k] = v
-	}
-
-	tm := time.Unix(event.Ts, 0)
-
-	return influx.NewPoint("events", tags, fields, tm)
 }
 
 type MockedInfluxClient struct {

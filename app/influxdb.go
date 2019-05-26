@@ -7,7 +7,10 @@ import (
 	"time"
 )
 
-const databaseName = "mydb"
+const (
+	databaseName    = "mydb"
+	eventsTableName = "events"
+)
 
 // DBClient represents a generic interface for DB related operations
 type DBClient interface {
@@ -41,13 +44,34 @@ func (c InfluxDBClient) Ping() error {
 func (c InfluxDBClient) Save(event EventModel) error {
 	log.Printf("Save event %+v", event)
 
+	bps, err := constructBatchPoints(event)
+	if err != nil {
+		log.Print("Error while creating batch points for InfluxDB", err)
+		return err
+	}
+
+	defer c.influxHTTPClient.Close()
+
+	err = c.influxHTTPClient.Write(bps)
+	if err != nil {
+		log.Print("Error while writting data to InfluxDB", err)
+		return err
+	}
+
+	return nil
+}
+
+func constructBatchPoints(event EventModel) (influx.BatchPoints, error) {
 	bpc := influx.BatchPointsConfig{
 		Database: databaseName,
 	}
-	bps, _ := influx.NewBatchPoints(bpc)
 
-	tags := make(map[string]string)
-	tags["event_type"] = event.EventType
+	bps, err := influx.NewBatchPoints(bpc)
+	if err != nil {
+		return nil, err
+	}
+
+	tags := map[string]string{"event_type": event.EventType}
 
 	fields := make(map[string]interface{})
 	for k, v := range event.Params {
@@ -56,23 +80,14 @@ func (c InfluxDBClient) Save(event EventModel) error {
 
 	tm := time.Unix(event.Ts, 0)
 
-	point, err := influx.NewPoint("events", tags, fields, tm)
+	point, err := influx.NewPoint(eventsTableName, tags, fields, tm)
 	if err != nil {
-		log.Print(err)
-		return err
+		return nil, err
 	}
 
 	bps.AddPoint(point)
 
-	defer c.influxHTTPClient.Close()
-
-	err = c.influxHTTPClient.Write(bps)
-	if err != nil {
-		log.Print(err)
-		return err
-	}
-
-	return nil
+	return bps, nil
 }
 
 // FetchAll implements DBClient.FetchAll by featching events from influxDB in the specified time range
