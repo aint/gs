@@ -7,11 +7,14 @@ import (
 	"time"
 )
 
+const databaseName = "mydb"
+
 // DBClient represents a generic interface for DB related operations
 type DBClient interface {
 	Ping() error
 	Save(event EventModel) error
 	FetchAll(start int64, end int64) ([]EventModel, error)
+	FetchByType(eventType string, start int64, end int64) ([]EventModel, error)
 }
 
 // InfluxDBClient the implementation of DBClient backed by InfluxDB
@@ -39,7 +42,7 @@ func (c InfluxDBClient) Save(event EventModel) error {
 	log.Printf("Save event %+v", event)
 
 	bpc := influx.BatchPointsConfig{
-		Database: "mydb",
+		Database: databaseName,
 	}
 	bps, _ := influx.NewBatchPoints(bpc)
 
@@ -76,35 +79,68 @@ func (c InfluxDBClient) Save(event EventModel) error {
 func (c InfluxDBClient) FetchAll(start int64, end int64) ([]EventModel, error) {
 	log.Printf("Fetch all events from now - %ds to now - %ds", start, end)
 
-	cmd := fmt.Sprintf("SELECT * FROM events WHERE time >= NOW() - %ds AND time <= NOW() - %ds", start, end)
+	cmd := fmt.Sprintf(`SELECT * FROM events
+						WHERE time >= NOW() - %ds AND time <= NOW() - %ds`, start, end)
 
-	log.Println("Query data with comand", cmd)
+	log.Println("Query data with command", cmd)
 
-	q := influx.Query{
-		Command:  cmd,
-		Database: "mydb",
-	}
-
-	defer c.influxHTTPClient.Close()
-
-	response, err := c.influxHTTPClient.Query(q)
+	response, err := c.queryDB(cmd)
 	if err != nil {
 		return nil, err
 	}
+
+	return c.parseResponse(response)
+}
+
+// FetchByType implements DBClient.FetchByType by featching events by type from influxDB in the specified time range
+func (c InfluxDBClient) FetchByType(eventType string, start int64, end int64) ([]EventModel, error) {
+	log.Printf("Fetch events by type %s and from now - %ds to now - %ds", eventType, start, end)
+
+	cmd := fmt.Sprintf(`SELECT * FROM events
+						WHERE event_type='%s'
+								AND time >= NOW() - %ds AND time <= NOW() - %ds`, eventType, start, end)
+
+	log.Println("Query data with command", cmd)
+
+	response, err := c.queryDB(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.parseResponse(response)
+}
+
+// queryDB convenience function to query the database
+func (c InfluxDBClient) queryDB(cmd string) (*influx.Response, error) {
+	defer c.influxHTTPClient.Close()
+
+	q := influx.Query{
+		Command:  cmd,
+		Database: databaseName,
+	}
+
+	response, err := c.influxHTTPClient.Query(q)
+	if err != nil {
+		log.Print("Error while querying InfluxDB", err)
+		return nil, err
+	}
 	if response.Error() != nil {
+		log.Print("Error in response from InfluxDB", err)
 		return nil, response.Error()
 	}
 
-	fmt.Printf("%+v \n", response.Results)
+	return response, nil
+}
 
+func (c InfluxDBClient) parseResponse(response *influx.Response) ([]EventModel, error) {
 	events := []EventModel{}
 	for _, result := range response.Results {
 		for _, row := range result.Series {
 			for _, value := range row.Values {
 				tm, err := time.Parse(time.RFC3339, value[0].(string))
 				if err != nil {
-					log.Print(err)
-					return nil, err
+					log.Print("Error while parsing time from InfluxDB")
+					return events, err
 				}
 
 				params := make(map[string]interface{})
