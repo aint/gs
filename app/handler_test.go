@@ -54,3 +54,8 @@ func (m *MockedInfluxDBClient) FetchAll(start int64, end int64) ([]EventModel, e
 	args := m.Called(start, end)
 	return args.Get(0).([]EventModel), args.Error(1)
 }
+
+func (m *MockedInfluxDBClient) FetchByType(eventType string, start int64, end int64) ([]EventModel, error) {
+	args := m.Called(eventType, start, end)
+	return args.Get(0).([]EventModel), args.Error(1)
+}

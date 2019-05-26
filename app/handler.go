@@ -59,19 +59,25 @@ func SaveEvent(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 func GetEvents(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	log.Println("Handle get events request")
 
-	start, err := validateQueryPeriodParam(r, "start", true)
+	start, err := validateQueryPeriodParam(r, "start", true, parsePeriodToSeconds)
 	if err != nil {
 		returnError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	end, err := validateQueryPeriodParam(r, "end", false)
+	end, err := validateQueryPeriodParam(r, "end", false, parsePeriodToSeconds)
 	if err != nil {
 		returnError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	events, err := dbClient.FetchAll(start, end)
+	eventType, err := validateQueryPeriodParam(r, "type", true, nil)
+	if err != nil {
+		returnError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	events, err := dbClient.FetchByType(eventType.(string), start.(int64), end.(int64))
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error while fetching events from DB: '%s'", err)
 		returnError(w, http.StatusInternalServerError, errorMessage)
@@ -98,7 +104,9 @@ func returnError(w http.ResponseWriter, status int, message string) {
 	returnJSON(w, status, map[string]string{"error": message})
 }
 
-func validateQueryPeriodParam(r *http.Request, paramName string, mandatory bool) (int64, error) {
+type mapFn func(string) (interface{}, error)
+
+func validateQueryPeriodParam(r *http.Request, paramName string, mandatory bool, fn mapFn) (interface{}, error) {
 	paramValue := r.URL.Query().Get(paramName)
 	log.Printf("Validating query param %s = %s", paramName, paramValue)
 
@@ -108,17 +116,20 @@ func validateQueryPeriodParam(r *http.Request, paramName string, mandatory bool)
 		}
 		paramValue = "0"
 	}
-	param, err := parsePeriodToSeconds(paramValue)
-	if err != nil {
-		return -1, fmt.Errorf("`%s` param is invalid", paramName)
+	if fn != nil {
+		param, err := fn(paramValue)
+		if err != nil {
+			return -1, fmt.Errorf("`%s` param is invalid", paramName)
+		}
+		return param, nil
 	}
 
-	return param, nil
+	return paramValue, nil
 }
 
 var re = regexp.MustCompile(`(\d+)(m|minute|minutes|h|hour|hours|d|day|days|w|weeks|weeks)`)
 
-func parsePeriodToSeconds(period string) (int64, error) {
+func parsePeriodToSeconds(period string) (interface{}, error) {
 	if re.MatchString(period) {
 		groups := re.FindStringSubmatch(period)
 		// no need to handle error as it already matched by regexp
