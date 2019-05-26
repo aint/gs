@@ -18,7 +18,7 @@ type EventModel struct {
 
 // Health the health endpoint provides basic application health information
 func Health(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
-	log.Println("Health endpoint")
+	log.Println("Handle request to health endpoint")
 
 	err := dbClient.Ping()
 	if err != nil {
@@ -34,7 +34,7 @@ func Health(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 
 // SaveEvents handles the save events request
 func SaveEvents(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
-	log.Println("Handle save event request")
+	log.Println("Handle request to save events endpoint")
 
 	events := []EventModel{}
 
@@ -57,7 +57,7 @@ func SaveEvents(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 
 // GetEvents handles get events request
 func GetEvents(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
-	log.Println("Handle get events request")
+	log.Println("Handle request to get events endpoint")
 
 	start, err := validateQueryPeriodParam(r, "start", true, parsePeriodToSeconds)
 	if err != nil {
@@ -100,7 +100,7 @@ func returnJSON(w http.ResponseWriter, status int, payload interface{}) {
 }
 
 func returnError(w http.ResponseWriter, status int, message string) {
-	log.Printf("Returning error '%s' with status code %d", message, status)
+	log.Printf("Return error '%s' with status code %d", message, status)
 	returnJSON(w, status, map[string]string{"error": message})
 }
 
@@ -108,7 +108,7 @@ type mapFn func(string) (interface{}, error)
 
 func validateQueryPeriodParam(r *http.Request, paramName string, mandatory bool, fn mapFn) (interface{}, error) {
 	paramValue := r.URL.Query().Get(paramName)
-	log.Printf("Validating query param %s = %s", paramName, paramValue)
+	log.Printf("Validate query param %s = %s", paramName, paramValue)
 
 	if len(paramValue) == 0 {
 		if mandatory {
@@ -137,21 +137,16 @@ func parsePeriodToSeconds(period string) (interface{}, error) {
 
 		switch unit := groups[2]; unit {
 		case "m":
-			log.Println("minutes")
 			return int64(amount * 60), nil
 		case "h":
-			log.Println("hours")
 			return int64(amount * 3600), nil
 		case "d":
-			log.Println("days")
 			return int64(amount * 86400), nil
 		case "w":
-			log.Println("days")
 			return int64(amount * 604800), nil
 		default:
 			panic("Specified period can't be processed")
 		}
-
 	}
 
 	return strconv.ParseInt(period, 10, 64)

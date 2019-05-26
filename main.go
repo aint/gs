@@ -38,6 +38,7 @@ func New(router *mux.Router, dbClient app.DBClient) App {
 }
 
 func (a App) startHTTPServer(port string) {
+	log.Println("App is starting ...")
 	log.Fatal(http.ListenAndServe(port, a.router))
 }
 

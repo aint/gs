@@ -42,7 +42,7 @@ func (c InfluxDBClient) Ping() error {
 
 // Save implements DBClient.Save by batch saving the specified events into influxDB
 func (c InfluxDBClient) Save(events []EventModel) error {
-	log.Printf("Save event %+v", events)
+	log.Printf("Save events: %+v", events)
 
 	bps, err := constructBatchPoints(events)
 	if err != nil {
@@ -177,8 +177,6 @@ func (c InfluxDBClient) parseResponse(response *influx.Response) ([]EventModel, 
 				}
 
 				events = append(events, e)
-
-				fmt.Println("event:", e)
 			}
 		}
 	}
