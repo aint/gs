@@ -1,6 +1,6 @@
 # Overview
 At first I'd like to apologize for a lot of typos and other mistakes. Unfortunately due to a lack of time I had no chance to review all the stuff.
-Basically this app is just an abstraction on top of InfluxDB. IMO the best solution will be just to use InfluxDB directly (or any other time-series db).
+Basically this app is just an abstraction on top of InfluxDB. IMO the best solution would be just to use InfluxDB directly without writing any code :smiley:
 
 # Quick Start
 
@@ -79,6 +79,6 @@ I advocate for BDD testing because tests that follow BDD principles are more exp
 
 # Improvments
 
-- [] swagger
-- [] structured logs
-- [] caching
+- [ ] swagger
+- [ ] structured logs
+- [ ] caching
