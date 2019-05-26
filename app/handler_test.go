@@ -1,39 +1,66 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestHealth(t *testing.T) {
-	req, err := http.NewRequest("GET", "/health", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	Convey("Given a request to health endpoint", t, func() {
+		req, err := http.NewRequest("GET", "/health", nil)
+		assert.NoError(t, err)
 
-	mockerDBClient := new(MockedInfluxDBClient)
-	mockerDBClient.On("Ping").Return(nil)
+		Convey("Happy case", func() {
+			// given
+			mockerDBClient := new(MockedInfluxDBClient)
+			mockerDBClient.On("Ping").Return(nil)
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Health(mockerDBClient, w, r)
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				Health(mockerDBClient, w, r)
+			})
+
+			// when
+			handler.ServeHTTP(rr, req)
+
+			// then
+			assert.Equal(t, http.StatusOK, rr.Code, "handler returned wrong status code")
+
+			expected := `{"app_status":"ok","db_status":"ok"}`
+			assert.Equal(t, expected, rr.Body.String(), "handler returned unexpected body")
+
+			mockerDBClient.AssertExpectations(t)
+		})
+
+		Convey("Fail case", func() {
+			// given
+			mockerDBClient := new(MockedInfluxDBClient)
+			mockerDBClient.On("Ping").Return(fmt.Errorf("can't connect to DB"))
+
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				Health(mockerDBClient, w, r)
+			})
+
+			// when
+			handler.ServeHTTP(rr, req)
+
+			// then
+			assert.Equal(t, http.StatusInternalServerError, rr.Code, "handler returned wrong status code")
+
+			expected := `{"error":"Error while pinging DB: 'can't connect to DB'"}`
+			assert.Equal(t, expected, rr.Body.String(), "handler returned unexpected body")
+
+			mockerDBClient.AssertExpectations(t)
+		})
 	})
 
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	expected := `{"app_status":"ok","db_status":"ok"}`
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
 }
 
 type MockedInfluxDBClient struct {
