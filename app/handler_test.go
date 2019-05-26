@@ -13,7 +13,7 @@ import (
 
 func TestHealth(t *testing.T) {
 	Convey("Given a request to health endpoint", t, func() {
-		req, err := http.NewRequest("GET", "/health", nil)
+		req, err := http.NewRequest(http.MethodGet, "/health", nil)
 		assert.NoError(t, err)
 
 		Convey("Happy case", func() {
