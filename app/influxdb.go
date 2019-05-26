@@ -94,8 +94,8 @@ func constructBatchPoints(event EventModel) (influx.BatchPoints, error) {
 func (c InfluxDBClient) FetchAll(start int64, end int64) ([]EventModel, error) {
 	log.Printf("Fetch all events from now - %ds to now - %ds", start, end)
 
-	cmd := fmt.Sprintf(`SELECT * FROM events
-						WHERE time >= NOW() - %ds AND time <= NOW() - %ds`, start, end)
+	cmd := fmt.Sprintf(`SELECT * FROM %s
+						WHERE time >= NOW() - %ds AND time <= NOW() - %ds`, eventsTableName, start, end)
 
 	log.Println("Query data with command", cmd)
 
@@ -111,9 +111,10 @@ func (c InfluxDBClient) FetchAll(start int64, end int64) ([]EventModel, error) {
 func (c InfluxDBClient) FetchByType(eventType string, start int64, end int64) ([]EventModel, error) {
 	log.Printf("Fetch events by type %s and from now - %ds to now - %ds", eventType, start, end)
 
-	cmd := fmt.Sprintf(`SELECT * FROM events
+	cmd := fmt.Sprintf(`SELECT * FROM %s
 						WHERE event_type='%s'
-								AND time >= NOW() - %ds AND time <= NOW() - %ds`, eventType, start, end)
+								AND time >= NOW() - %ds
+								AND time <= NOW() - %ds`, eventsTableName, eventType, start, end)
 
 	log.Println("Query data with command", cmd)
 
