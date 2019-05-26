@@ -35,3 +35,34 @@ func Health(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(response))
 }
+
+// SaveEvent handles save event request
+func SaveEvent(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handle save event request")
+
+	event := EventModel{}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&event); err != nil {
+		log.Println("Error while marshaling event struct", err.Error())
+		return
+	}
+	defer r.Body.Close()
+}
+
+// GetEvents handles get events request
+func GetEvents(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handle get events request")
+
+	// start := r.URL.Query().Get("start")
+	// end := r.URL.Query().Get("end")
+
+	events := []EventModel{}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&events); err != nil {
+		log.Println("Error while marshaling array of event structs", err.Error())
+		return
+	}
+	defer r.Body.Close()
+}
