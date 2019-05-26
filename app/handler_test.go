@@ -17,16 +17,13 @@ func TestHealth(t *testing.T) {
 
 		t.Run("Happy case", func(t *testing.T) {
 			// given
-			mockerDBClient := new(MockedInfluxDBClient)
-			mockerDBClient.On("Ping").Return(nil)
+			mockedDBClient := new(MockedInfluxDBClient)
+			mockedDBClient.On("Ping").Return(nil)
 
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				Health(mockerDBClient, w, r)
-			})
 
 			// when
-			handler.ServeHTTP(rr, req)
+			Health(mockedDBClient, rr, req)
 
 			// then
 			assert.Equal(t, http.StatusOK, rr.Code, "handler returned wrong status code")
@@ -34,21 +31,18 @@ func TestHealth(t *testing.T) {
 			expected := `{"app_status":"ok","db_status":"ok"}`
 			assert.Equal(t, expected, rr.Body.String(), "handler returned unexpected body")
 
-			mockerDBClient.AssertExpectations(t)
+			mockedDBClient.AssertExpectations(t)
 		})
 
 		t.Run("Fail case", func(t *testing.T) {
 			// given
-			mockerDBClient := new(MockedInfluxDBClient)
-			mockerDBClient.On("Ping").Return(fmt.Errorf("can't connect to DB"))
+			mockedDBClient := new(MockedInfluxDBClient)
+			mockedDBClient.On("Ping").Return(fmt.Errorf("can't connect to DB"))
 
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				Health(mockerDBClient, w, r)
-			})
 
 			// when
-			handler.ServeHTTP(rr, req)
+			Health(mockedDBClient, rr, req)
 
 			// then
 			assert.Equal(t, http.StatusInternalServerError, rr.Code, "handler returned wrong status code")
@@ -56,7 +50,7 @@ func TestHealth(t *testing.T) {
 			expected := `{"error":"Error while pinging DB: 'can't connect to DB'"}`
 			assert.Equal(t, expected, rr.Body.String(), "handler returned unexpected body")
 
-			mockerDBClient.AssertExpectations(t)
+			mockedDBClient.AssertExpectations(t)
 		})
 	})
 }
