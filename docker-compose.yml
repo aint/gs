@@ -15,6 +15,7 @@ services:
     image: influxdb
     environment:
       - INFLUXDB_REPORTING_DISABLED=true
+      - INFLUXDB_DB=mydb
     ports:
       - 8086:8086
     volumes:
