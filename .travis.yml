@@ -1,0 +1,13 @@
+language: go
+
+env:
+  - GO111MODULE=on
+
+go:
+  - 1.12.x
+
+install: true
+
+script:
+  # - go test -v ./...
+  - docker-compose up --abort-on-container-exit --exit-code-from test-runner
