@@ -43,7 +43,7 @@ func (a App) startHTTPServer(port string) {
 
 func (a App) setRouters() {
 	a.router.HandleFunc("/", a.getEventsEndpoint).Methods("GET")
-	a.router.HandleFunc("/", a.postEventEndpoint).Methods("POST")
+	a.router.HandleFunc("/events/relative", a.postEventEndpoint).Methods("POST")
 	a.router.HandleFunc("/health", a.getHealthEndpoint).Methods("GET")
 }
 
