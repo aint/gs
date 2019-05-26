@@ -17,10 +17,19 @@ type EventModel struct {
 func Health(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	log.Println("Health endpoint")
 
+	err := dbClient.Ping()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		log.Println("Error while pinging DB", err.Error())
+		return
+	}
+
 	healthStruct := struct {
 		AppStatus string `json:"app_status"`
+		DBStatus  string `json:"db_status"`
 	}{
-		"ok",
+		"ok", "ok",
 	}
 
 	response, err := json.Marshal(healthStruct)

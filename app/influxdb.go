@@ -9,6 +9,7 @@ import (
 
 // DBClient represents a generic interface for DB related operations
 type DBClient interface {
+	Ping() error
 	Save(event EventModel) error
 	FetchAll(start int64, end int64) ([]EventModel, error)
 }
@@ -24,6 +25,13 @@ func NewInfluxDBClient(influxHTTPClient influx.Client) DBClient {
 	return InfluxDBClient{
 		influxHTTPClient,
 	}
+}
+
+// Ping pings InfluxDB just to check if connection is OK
+func (c InfluxDBClient) Ping() error {
+	log.Printf("Ping InfluxDB")
+	_, _, err := c.influxHTTPClient.Ping(0)
+	return err
 }
 
 // Save implements DBClient.Save by saving the specified event into influxDB
