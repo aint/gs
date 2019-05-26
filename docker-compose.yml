@@ -9,7 +9,7 @@ services:
     ports:
       - 8080:8080
     environment:
-      DB_URL: influxdb:8086
+      DB_URL: http://influxdb:8086
 
   influxdb:
     image: influxdb
