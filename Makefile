@@ -9,3 +9,6 @@ run:
 
 down:
 	docker-compose down -v
+
+integration:
+	docker-compose up --build --abort-on-container-exit --exit-code-from test-runner
