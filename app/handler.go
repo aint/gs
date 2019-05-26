@@ -14,7 +14,7 @@ type EventModel struct {
 }
 
 // Health the health endpoint provides basic application health information
-func Health(w http.ResponseWriter, r *http.Request) {
+func Health(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	log.Println("Health endpoint")
 
 	healthStruct := struct {
@@ -37,7 +37,7 @@ func Health(w http.ResponseWriter, r *http.Request) {
 }
 
 // SaveEvent handles save event request
-func SaveEvent(w http.ResponseWriter, r *http.Request) {
+func SaveEvent(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	log.Println("Handle save event request")
 
 	event := EventModel{}
@@ -51,7 +51,7 @@ func SaveEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetEvents handles get events request
-func GetEvents(w http.ResponseWriter, r *http.Request) {
+func GetEvents(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	log.Println("Handle get events request")
 
 	// start := r.URL.Query().Get("start")
