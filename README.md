@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/aint/gs.svg?branch=master)](https://travis-ci.com/aint/gs)
+
 # Overview
 At first I'd like to apologize for a lot of typos and other mistakes. Unfortunately due to a lack of time I had no chance to review all the stuff.
 Basically this app is just an abstraction on top of InfluxDB. IMO the best solution would be just to use InfluxDB directly without writing any code :smiley:
