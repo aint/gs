@@ -4,8 +4,21 @@ services:
   gs-app:
     build:
       context: .
+    depends_on:
+      - influxdb
     ports:
       - 8080:8080
+    environment:
+      DB_URL: influxdb:8086
+
+  influxdb:
+    image: influxdb
+    environment:
+      - INFLUXDB_REPORTING_DISABLED=true
+    ports:
+      - 8086:8086
+    volumes:
+      - ./data:/var/lib/influxdb
 
   test-runner:
     image: alpine
