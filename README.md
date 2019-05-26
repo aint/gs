@@ -68,6 +68,8 @@ It's time to code.
 - REST API as a comminication interface
     - gRPC looks interesting and worth trying out but I have a limited time. So maybe next time.
     - GraphQL seems not good fit to me
+    - API should supports processing new events in batch as we have to deal with thousands of events coming from a mobile SDKs every second.
+
 
 ### Project structure
 
