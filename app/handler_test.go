@@ -6,17 +6,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestHealth(t *testing.T) {
-	Convey("Given a request to health endpoint", t, func() {
+	t.Run("Given a request to health endpoint", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodGet, "/health", nil)
 		assert.NoError(t, err)
 
-		Convey("Happy case", func() {
+		t.Run("Happy case", func(t *testing.T) {
 			// given
 			mockerDBClient := new(MockedInfluxDBClient)
 			mockerDBClient.On("Ping").Return(nil)
@@ -38,7 +37,7 @@ func TestHealth(t *testing.T) {
 			mockerDBClient.AssertExpectations(t)
 		})
 
-		Convey("Fail case", func() {
+		t.Run("Fail case", func(t *testing.T) {
 			// given
 			mockerDBClient := new(MockedInfluxDBClient)
 			mockerDBClient.On("Ping").Return(fmt.Errorf("can't connect to DB"))
@@ -60,7 +59,6 @@ func TestHealth(t *testing.T) {
 			mockerDBClient.AssertExpectations(t)
 		})
 	})
-
 }
 
 type MockedInfluxDBClient struct {

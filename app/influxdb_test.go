@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	influx "github.com/influxdata/influxdb1-client/v2"
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -11,12 +10,12 @@ import (
 )
 
 func TestFetchByType(t *testing.T) {
-	Convey("Given start, end and type parameters", t, func() {
+	t.Run("Given start, end and type parameters", func(t *testing.T) {
 		eventType := "session_start"
 		start := int64(1558888555)
 		end := int64(1558888888)
 
-		Convey("Happy case", func() {
+		t.Run("Happy case", func(t *testing.T) {
 			// given
 			response := &influx.Response{Results: []influx.Result{}, Err: ""}
 
@@ -36,7 +35,7 @@ func TestFetchByType(t *testing.T) {
 			influxClient.AssertExpectations(t)
 		})
 
-		Convey("Fail case", func() {
+		t.Run("Fail case", func(t *testing.T) {
 			// given
 			response := &influx.Response{Results: []influx.Result{}, Err: "Some error on DB read"}
 
@@ -59,13 +58,13 @@ func TestFetchByType(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	Convey("Given some events", t, func() {
+	t.Run("Given some events", func(t *testing.T) {
 		events := []EventModel{
 			EventModel{"type", 123456, map[string]interface{}{"key1": 42}},
 			EventModel{"type", 234567, map[string]interface{}{"key2": "42"}},
 		}
 
-		Convey("Happy case", func() {
+		t.Run("Happy case", func(t *testing.T) {
 			// given
 			bps, _ := constructBatchPoints(events)
 
@@ -84,7 +83,7 @@ func TestSave(t *testing.T) {
 			influxClient.AssertExpectations(t)
 		})
 
-		Convey("Fail case", func() {
+		t.Run("Fail case", func(t *testing.T) {
 			// given
 			influxClient := new(MockedInfluxClient)
 			influxClient.On("Write", mock.Anything).Return(fmt.Errorf("Some error on DB write"))
