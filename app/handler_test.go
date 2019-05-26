@@ -1,10 +1,11 @@
 package app
 
 import (
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/mock"
 )
 
 func TestHealth(t *testing.T) {
@@ -24,15 +25,15 @@ func TestHealth(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
-        t.Errorf("handler returned wrong status code: got %v want %v",
-            status, http.StatusOK)
-    }
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
 
-    expected := `{"app_status":"ok","db_status":"ok"}`
-    if rr.Body.String() != expected {
-        t.Errorf("handler returned unexpected body: got %v want %v",
-            rr.Body.String(), expected)
-    }
+	expected := `{"app_status":"ok","db_status":"ok"}`
+	if rr.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			rr.Body.String(), expected)
+	}
 }
 
 type MockedInfluxDBClient struct {
