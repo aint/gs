@@ -32,21 +32,21 @@ func Health(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	returnJSON(w, http.StatusOK, healthResponse)
 }
 
-// SaveEvent handles save event request
-func SaveEvent(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
+// SaveEvents handles the save events request
+func SaveEvents(dbClient DBClient, w http.ResponseWriter, r *http.Request) {
 	log.Println("Handle save event request")
 
-	event := EventModel{}
+	events := []EventModel{}
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&event)
+	err := decoder.Decode(&events)
 	if err != nil {
 		log.Println("Error while demarshalling body", err.Error())
 		return
 	}
 	defer r.Body.Close()
 
-	err = dbClient.Save(event)
+	err = dbClient.Save(events)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error while saving event to DB: '%s'", err)
 		returnError(w, http.StatusInternalServerError, errorMessage)

@@ -45,7 +45,7 @@ func (m *MockedInfluxDBClient) Ping() error {
 	return args.Error(0)
 }
 
-func (m *MockedInfluxDBClient) Save(event EventModel) error {
+func (m *MockedInfluxDBClient) Save(event []EventModel) error {
 	args := m.Called(event)
 	return args.Error(0)
 }

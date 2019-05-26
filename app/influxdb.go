@@ -15,7 +15,7 @@ const (
 // DBClient represents a generic interface for DB related operations
 type DBClient interface {
 	Ping() error
-	Save(event EventModel) error
+	Save(event []EventModel) error
 	FetchAll(start int64, end int64) ([]EventModel, error)
 	FetchByType(eventType string, start int64, end int64) ([]EventModel, error)
 }
@@ -40,11 +40,11 @@ func (c InfluxDBClient) Ping() error {
 	return err
 }
 
-// Save implements DBClient.Save by saving the specified event into influxDB
-func (c InfluxDBClient) Save(event EventModel) error {
-	log.Printf("Save event %+v", event)
+// Save implements DBClient.Save by batch saving the specified events into influxDB
+func (c InfluxDBClient) Save(events []EventModel) error {
+	log.Printf("Save event %+v", events)
 
-	bps, err := constructBatchPoints(event)
+	bps, err := constructBatchPoints(events)
 	if err != nil {
 		log.Print("Error while creating batch points for InfluxDB", err)
 		return err
@@ -61,7 +61,7 @@ func (c InfluxDBClient) Save(event EventModel) error {
 	return nil
 }
 
-func constructBatchPoints(event EventModel) (influx.BatchPoints, error) {
+func constructBatchPoints(events []EventModel) (influx.BatchPoints, error) {
 	bpc := influx.BatchPointsConfig{
 		Database: databaseName,
 	}
@@ -71,21 +71,23 @@ func constructBatchPoints(event EventModel) (influx.BatchPoints, error) {
 		return nil, err
 	}
 
-	tags := map[string]string{"event_type": event.EventType}
+	for _, e := range events {
+		tags := map[string]string{"event_type": e.EventType}
 
-	fields := make(map[string]interface{})
-	for k, v := range event.Params {
-		fields[k] = v
+		fields := make(map[string]interface{})
+		for k, v := range e.Params {
+			fields[k] = v
+		}
+
+		tm := time.Unix(e.Ts, 0)
+
+		point, err := influx.NewPoint(eventsTableName, tags, fields, tm)
+		if err != nil {
+			return nil, err
+		}
+
+		bps.AddPoint(point)
 	}
-
-	tm := time.Unix(event.Ts, 0)
-
-	point, err := influx.NewPoint(eventsTableName, tags, fields, tm)
-	if err != nil {
-		return nil, err
-	}
-
-	bps.AddPoint(point)
 
 	return bps, nil
 }

@@ -43,7 +43,7 @@ func (a App) startHTTPServer(port string) {
 
 func (a App) setRouters() {
 	a.router.HandleFunc("/events/relative", a.getEventsEndpoint).Methods("GET")
-	a.router.HandleFunc("/events", a.postEventEndpoint).Methods("POST")
+	a.router.HandleFunc("/events", a.postEventsEndpoint).Methods("POST")
 	a.router.HandleFunc("/health", a.getHealthEndpoint).Methods("GET")
 }
 
@@ -55,8 +55,8 @@ func (a App) getEventsEndpoint(w http.ResponseWriter, r *http.Request) {
 	app.GetEvents(a.dbClient, w, r)
 }
 
-func (a App) postEventEndpoint(w http.ResponseWriter, r *http.Request) {
-	app.SaveEvent(a.dbClient, w, r)
+func (a App) postEventsEndpoint(w http.ResponseWriter, r *http.Request) {
+	app.SaveEvents(a.dbClient, w, r)
 }
 
 func newInfluxHTTPClient(URL string) influx.Client {

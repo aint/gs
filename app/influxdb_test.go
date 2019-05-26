@@ -59,12 +59,15 @@ func TestFetchByType(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	Convey("Given some event", t, func() {
-		event := EventModel{"type", 123456, map[string]interface{}{"key": 42}}
+	Convey("Given some events", t, func() {
+		events := []EventModel{
+			EventModel{"type", 123456, map[string]interface{}{"key1": 42}},
+			EventModel{"type", 234567, map[string]interface{}{"key2": "42"}},
+		}
 
 		Convey("Happy case", func() {
 			// given
-			bps, _ := constructBatchPoints(event)
+			bps, _ := constructBatchPoints(events)
 
 			influxClient := new(MockedInfluxClient)
 			influxClient.On("Write", bps).Return(nil)
@@ -73,7 +76,7 @@ func TestSave(t *testing.T) {
 			dbClient := NewInfluxDBClient(influxClient)
 
 			// when
-			err := dbClient.Save(event)
+			err := dbClient.Save(events)
 
 			// then
 			assert.NoError(t, err)
@@ -90,7 +93,7 @@ func TestSave(t *testing.T) {
 			dbClient := NewInfluxDBClient(influxClient)
 
 			// when
-			err := dbClient.Save(event)
+			err := dbClient.Save(events)
 
 			// then
 			assert.Error(t, err)
