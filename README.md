@@ -84,3 +84,4 @@ I advocate for BDD testing because tests that follow BDD principles are more exp
 - [ ] swagger
 - [ ] structured logs
 - [ ] caching
+- [ ] caching for TravisCI build
